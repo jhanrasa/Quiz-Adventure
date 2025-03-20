@@ -1,5 +1,17 @@
 # Quiz-Adventure
 A code to help with the studies
 
-Single block of code
-Supported by Grok3
+objectives:
+  Single block of code
+  multiplataform support
+
+issues:
+  Read materials:
+    acess just files with -quiz- in the file name 
+    show them in a list
+    show in a study mode with progress, time spend and makpage
+      in the same window
+  Front end:
+    inprove the interface to be friendly
+      add animations and sound (with the option to disable)
+      add a button to stilize the interface with some options of colors

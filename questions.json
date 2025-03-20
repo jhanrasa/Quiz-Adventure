@@ -1,0 +1,179 @@
+{
+  "Iniciante": {
+    "Ciência": {
+      "open": [
+        {"question": "O que é ciência?", "answer": "Estudo organizado do mundo natural"},
+        {"question": "Cite um exemplo de ciência empírica.", "answer": "Física"},
+        {"question": "O que é uma hipótese?", "answer": "Uma suposição testável"}
+      ],
+      "multiple": [
+        {
+          "question": "Qual é o primeiro passo do método científico?",
+          "options": {"A": "Experimentação", "B": "Observação", "C": "Conclusão"},
+          "answer": "B"
+        },
+        {
+          "question": "Qual ciência estuda os seres vivos?",
+          "options": {"A": "Química", "B": "Biologia", "C": "Matemática"},
+          "answer": "B"
+        }
+      ]
+    },
+    "Psicologia": {
+      "open": [
+        {"question": "O que a psicologia estuda?", "answer": "Comportamento e processos mentais"},
+        {"question": "Dê um exemplo de emoção.", "answer": "Felicidade"},
+        {"question": "O que é um reflexo?", "answer": "Resposta automática a um estímulo"}
+      ],
+      "multiple": [
+        {
+          "question": "Quem é considerado o pai da psicologia moderna?",
+          "options": {"A": "Freud", "B": "Wundt", "C": "Pavlov"},
+          "answer": "B"
+        },
+        {
+          "question": "Qual é um exemplo de comportamento?",
+          "options": {"A": "Pensar", "B": "Correr", "C": "Sonhar"},
+          "answer": "B"
+        }
+      ]
+    },
+    "Neurociências": {
+      "open": [
+        {"question": "O que é o cérebro?", "answer": "Órgão que controla o corpo"},
+        {"question": "O que são neurônios?", "answer": "Células do sistema nervoso"},
+        {"question": "Cite uma função do cérebro.", "answer": "Pensar"}
+      ],
+      "multiple": [
+        {
+          "question": "Qual parte do corpo é estudada pelas neurociências?",
+          "options": {"A": "Coração", "B": "Sistema Nervoso", "C": "Pulmões"},
+          "answer": "B"
+        },
+        {
+          "question": "O que os neurônios fazem?",
+          "options": {"A": "Produzem sangue", "B": "Transmitem sinais", "C": "Digestão"},
+          "answer": "B"
+        }
+      ]
+    }
+  },
+  "Estudado": {
+    "Ciência": {
+      "open": [
+        {"question": "O que é o método científico?", "answer": "Processo para investigar fenômenos"},
+        {"question": "Cite uma ciência formal.", "answer": "Matemática"},
+        {"question": "O que é uma teoria científica?", "answer": "Explicação bem fundamentada"}
+      ],
+      "multiple": [
+        {
+          "question": "Qual método parte de observações específicas para generalizações?",
+          "options": {"A": "Dedutivo", "B": "Indutivo", "C": "Experimental"},
+          "answer": "B"
+        },
+        {
+          "question": "Qual é uma característica da ciência?",
+          "options": {"A": "Subjetividade", "B": "Verificabilidade", "C": "Fé"},
+          "answer": "B"
+        }
+      ]
+    },
+    "Psicologia": {
+      "open": [
+        {"question": "O que é conduta manifesta?", "answer": "Comportamento observável"},
+        {"question": "Cite um método usado em psicologia.", "answer": "Experimental"},
+        {"question": "O que é o inconsciente segundo Freud?", "answer": "Parte da mente com desejos reprimidos"}
+      ],
+      "multiple": [
+        {
+          "question": "Qual escola psicológica foca no comportamento observável?",
+          "options": {"A": "Psicanálise", "B": "Conductismo", "C": "Humanismo"},
+          "answer": "B"
+        },
+        {
+          "question": "Qual método estuda relações entre variáveis?",
+          "options": {"A": "Correlacional", "B": "Experimental", "C": "Descritivo"},
+          "answer": "A"
+        }
+      ]
+    },
+    "Neurociências": {
+      "open": [
+        {"question": "O que é neuroplasticidade?", "answer": "Capacidade do cérebro de se adaptar"},
+        {"question": "Cite uma doença tratada pelas neurociências.", "answer": "Parkinson"},
+        {"question": "O que estuda a neuroanatomia?", "answer": "Estrutura do sistema nervoso"}
+      ],
+      "multiple": [
+        {
+          "question": "Qual é uma aplicação da neuroplasticidade?",
+          "options": {"A": "Diagnóstico de doenças", "B": "Reabilitação de AVC", "C": "Cirurgia"},
+          "answer": "B"
+        },
+        {
+          "question": "Qual doença está associada ao estresse crônico?",
+          "options": {"A": "Hipertensão", "B": "Gripe", "C": "Câncer"},
+          "answer": "A"
+        }
+      ]
+    }
+  },
+  "Pronto para a Prova": {
+    "Ciência": {
+      "open": [
+        {"question": "Explique a diferença entre ciência fática e formal.", "answer": "Fática lida com fatos observáveis, formal com sistemas abstratos"},
+        {"question": "Como o método indutivo é aplicado na ciência?", "answer": "A partir de observações específicas para generalizações"},
+        {"question": "O que garante a objetividade na ciência?", "answer": "Métodos rigorosos e verificáveis"}
+      ],
+      "multiple": [
+        {
+          "question": "Qual etapa do método científico testa a hipótese?",
+          "options": {"A": "Observação", "B": "Experimentação", "C": "Conclusão"},
+          "answer": "B"
+        },
+        {
+          "question": "Qual é um exemplo de ciência empírica?",
+          "options": {"A": "Lógica", "B": "Química", "C": "Matemática"},
+          "answer": "B"
+        }
+      ]
+    },
+    "Psicologia": {
+      "open": [
+        {"question": "Explique o dualismo mente-corpo de Descartes.", "answer": "Mente e corpo são entidades separadas que interagem"},
+        {"question": "Como o método experimental é usado em psicologia?", "answer": "Manipula variáveis para estudar causas e efeitos"},
+        {"question": "O que é a psicologia clínica?", "answer": "Área que diagnostica e trata transtornos psicológicos"}
+      ],
+      "multiple": [
+        {
+          "question": "Quem fundou o estruturalismo?",
+          "options": {"A": "Wundt", "B": "Freud", "C": "Skinner"},
+          "answer": "A"
+        },
+        {
+          "question": "Qual escola enfatiza a adaptação ao ambiente?",
+          "options": {"A": "Funcionalismo", "B": "Conductismo", "C": "Psicanálise"},
+          "answer": "A"
+        }
+      ]
+    },
+    "Neurociências": {
+      "open": [
+        {"question": "Como a psiconeuroimunologia explica o estresse?", "answer": "Interação entre cérebro, sistema imunológico e hormônios"},
+        {"question": "O que é o neurodesenvolvimento?", "answer": "Estudo do desenvolvimento do sistema nervoso"},
+        {"question": "Como a neurociência ajuda na epilepsia?", "answer": "Desenvolvendo tratamentos para controlar crises"}
+      ],
+      "multiple": [
+        {
+          "question": "Qual área estuda a interação cérebro-sistema imunológico?",
+          "options": {"A": "Neuroanatomia", "B": "Psiconeuroimunologia", "C": "Neurolingüística"},
+          "answer": "B"
+        },
+        {
+          "question": "Qual doença neurológica é mencionada no texto?",
+          "options": {"A": "Diabetes", "B": "Alzheimer", "C": "Asma"},
+          "answer": "B"
+        }
+      ]
+    }
+  }
+}

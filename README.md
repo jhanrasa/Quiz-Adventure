@@ -5,7 +5,7 @@
   ### Single block of code
   ### multiplataform support
 
-##issues:
+## Issues:
  1.Read materials:
     - acess just files with -quiz- in the file name 
     - show them in a list

@@ -43,6 +43,7 @@ class QuizApp:
         self.showing_stats = False  # Controle para alternar entre menu e estatísticas
         self.showing_mode = False  # Controle para alternar entre menu e seleção de modo
         self.showing_difficulty = False  # Controle para alternar entre menu e seleção de dificuldade
+        self.showing_quiz_selection = False  # Controle para alternar entre menu e seleção de quiz
 
         # Carregar perguntas do arquivo JSON
         self.load_questions_from_json()
@@ -148,6 +149,7 @@ class QuizApp:
         self.showing_stats = False
         self.showing_mode = False
         self.showing_difficulty = False
+        self.showing_quiz_selection = False
 
     def confirm_exit(self):
         """Exibe confirmação antes de sair do aplicativo."""
@@ -235,56 +237,58 @@ class QuizApp:
             self.showing_mode = False
 
     def show_quiz_selection(self, mode):
-        """Exibe um popup para selecionar o quiz."""
+        """Exibe as opções de tópicos na mesma janela."""
         self.current_mode = mode
+        if not self.showing_quiz_selection:
+            self.clear_frame()
+            self.main_frame = ttk.Frame(self.root, padding="20")
+            self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+            
+            self.main_frame.grid_rowconfigure(0, weight=1)
+            self.main_frame.grid_rowconfigure(1, weight=2)
+            self.main_frame.grid_rowconfigure(2, weight=1)
+            self.main_frame.grid_columnconfigure(0, weight=1)
 
-        selection_window = tk.Toplevel(self.root, bg=self.colors['light_green'])
-        selection_window.title("Selecione um Quiz")
-        selection_window.geometry("300x200")
-        selection_window.grid_rowconfigure(0, weight=1)
-        selection_window.grid_columnconfigure(0, weight=1)
+            self.title_label = ttk.Label(self.main_frame, text="Selecione o Tópico do Quiz",
+                                       anchor='center')
+            self.title_label.grid(row=0, column=0, pady=20, sticky=(tk.W, tk.E))
 
-        canvas = tk.Canvas(selection_window, bg=self.colors['light_green'])
-        scrollbar = ttk.Scrollbar(selection_window, orient="vertical", command=canvas.yview)
-        scrollable_frame = ttk.Frame(canvas)
+            quiz_frame = ttk.Frame(self.main_frame, padding="20")
+            quiz_frame.grid(row=1, column=0, sticky=(tk.N, tk.S))
 
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
+            # Obtém os temas disponíveis para a dificuldade selecionada
+            if self.current_difficulty in self.all_questions:
+                quizzes = self.all_questions[self.current_difficulty]
+                for i, quiz_name in enumerate(quizzes.keys()):
+                    ttk.Button(quiz_frame, text=quiz_name,
+                              command=lambda name=quiz_name: self.start_selected_quiz(name),
+                              width=25).grid(row=i, column=0, pady=10)
+            else:
+                ttk.Label(quiz_frame, text="Nenhum tópico disponível para esta dificuldade!").grid(row=0, column=0, pady=10)
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+            self.back_btn = ttk.Button(self.main_frame, text="Voltar", 
+                                     command=self.show_mode_selection, width=15)
+            self.back_btn.grid(row=2, column=0, pady=10)
 
-        # Obtém os temas disponíveis para a dificuldade selecionada
-        if self.current_difficulty in self.all_questions:
-            quizzes = self.all_questions[self.current_difficulty]
-            for quiz_name in quizzes.keys():
-                btn = ttk.Button(scrollable_frame, text=quiz_name,
-                               command=lambda name=quiz_name: self.start_selected_quiz(name, selection_window),
-                               width=25)
-                btn.pack(pady=5)
+            self.update_sizes()
+            self.showing_quiz_selection = True
         else:
-            messagebox.showerror("Erro", f"Nenhuma pergunta encontrada para a dificuldade {self.current_difficulty}!")
-            selection_window.destroy()
-            return
+            self.show_mode_selection()
+            self.showing_quiz_selection = False
 
-        canvas.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
-
-    def start_selected_quiz(self, quiz_name, selection_window):
-        """Inicia o quiz selecionado e fecha o popup."""
+    def start_selected_quiz(self, quiz_name):
+        """Inicia o quiz selecionado."""
         if (self.current_difficulty in self.all_questions and 
             quiz_name in self.all_questions[self.current_difficulty]):
-            quiz_data = self.all_questions[self.current_difficulty][quiz_name]
-            self.questions = quiz_data[self.current_mode].copy()  # Cria uma cópia para evitar modificar o original
+            quizzes = self.all_questions[self.current_difficulty][quiz_name]
+            question_type = 'open' if self.current_mode == 'open' else 'multiple'
+            self.questions = quizzes[question_type].copy()  # Cria uma cópia para evitar modificar o original
             random.shuffle(self.questions)  # Embaralha as perguntas
             self.total_questions = len(self.questions)
             self.start_quiz()
-            selection_window.destroy()
         else:
-            messagebox.showerror("Erro", "Erro ao carregar as perguntas. Verifique o arquivo JSON!")
-            selection_window.destroy()
+            messagebox.showerror("Erro", "Nenhum quiz disponível para esta dificuldade e modo!")
+            self.show_quiz_selection(self.current_mode)
 
     def create_quiz_frame(self):
         """Tela do quiz com perguntas e respostas."""
@@ -465,7 +469,7 @@ class QuizApp:
                     for attempt in lines:
                         if attempt.strip():
                             data = attempt.split("\n")
-                            timestamp = data[0].split(": ")
+                            timestamp = data[0].split(": ")[1].strip()
                             percentage = float(data[2].split(": ")[1].strip().rstrip("%"))
                             attempts.append((timestamp, percentage))
             except Exception as e:

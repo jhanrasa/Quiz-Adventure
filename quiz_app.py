@@ -39,14 +39,17 @@ class QuizApp:
         self.attempts = self.load_previous_attempts()
         self.current_mode = None  # 'open' para resposta aberta, 'multiple' para múltipla escolha
         self.current_difficulty = None  # 'Iniciante', 'Estudado', 'Pronto para a Prova'
+        self.current_json_file = None  # Arquivo JSON selecionado
         self.selected_answer = tk.StringVar()  # Para armazenar a escolha no modo de múltipla escolha
         self.showing_stats = False  # Controle para alternar entre menu e estatísticas
         self.showing_mode = False  # Controle para alternar entre menu e seleção de modo
         self.showing_difficulty = False  # Controle para alternar entre menu e seleção de dificuldade
-        self.showing_quiz_selection = False  # Controle para alternar entre menu e seleção de quiz
+        self.showing_json_selection = False  # Controle para alternar entre seleção de arquivo JSON
+        self.showing_quiz_selection = False  # Controle para alternar entre seleção de tema
+        self.showing_pdf_list = False  # Controle para alternar entre lista de PDFs
 
-        # Carregar perguntas do arquivo JSON
-        self.load_questions_from_json()
+        # Lista de arquivos JSON disponíveis
+        self.json_files = self.find_json_files()
 
         # Configuração da grade
         self.root.grid_rowconfigure(0, weight=1)
@@ -60,16 +63,23 @@ class QuizApp:
         self.show_initial_screen()
         self.root.bind('<Configure>', self.on_resize)
 
-    def load_questions_from_json(self):
-        """Carrega perguntas e respostas do arquivo JSON."""
+    def find_json_files(self):
+        """Encontra todos os arquivos .json com 'quiz' no nome na pasta atual."""
+        json_files = [f for f in os.listdir() if f.endswith('.json') and 'quiz' in f.lower()]
+        if not json_files:
+            messagebox.showwarning("Aviso", "Nenhum arquivo JSON com 'quiz' no nome foi encontrado!")
+        return json_files
+
+    def load_questions_from_json(self, json_file):
+        """Carrega perguntas e respostas do arquivo JSON especificado."""
         try:
-            with open("questions.json", "r", encoding="utf-8") as f:
+            with open(json_file, "r", encoding="utf-8") as f:
                 self.all_questions = json.load(f)
         except FileNotFoundError:
-            messagebox.showerror("Erro", "Arquivo 'questions.json' não encontrado!")
+            messagebox.showerror("Erro", f"Arquivo '{json_file}' não encontrado!")
             self.all_questions = {}
         except json.JSONDecodeError:
-            messagebox.showerror("Erro", "Erro ao ler o arquivo 'questions.json'. Verifique o formato!")
+            messagebox.showerror("Erro", f"Erro ao ler o arquivo '{json_file}'. Verifique o formato!")
             self.all_questions = {}
 
     # Configuração da interface
@@ -136,7 +146,7 @@ class QuizApp:
         btn_frame.grid(row=1, column=0, sticky=(tk.N, tk.S))
         
         btn_width = 20
-        ttk.Button(btn_frame, text="🎮 Jogar Quiz", command=self.show_difficulty_selection,
+        ttk.Button(btn_frame, text="🎮 Jogar Quiz", command=self.show_json_selection,
                   width=btn_width).grid(row=0, column=0, pady=10)
         ttk.Button(btn_frame, text="📖 Ler Materiais", command=self.show_pdf_list,
                   width=btn_width).grid(row=1, column=0, pady=10)
@@ -149,12 +159,58 @@ class QuizApp:
         self.showing_stats = False
         self.showing_mode = False
         self.showing_difficulty = False
+        self.showing_json_selection = False
         self.showing_quiz_selection = False
+        self.showing_pdf_list = False
 
     def confirm_exit(self):
         """Exibe confirmação antes de sair do aplicativo."""
         if messagebox.askyesno("Confirmação", "Deseja realmente sair do aplicativo?"):
             self.root.quit()
+
+    def show_json_selection(self):
+        """Exibe a lista de arquivos JSON disponíveis na mesma janela."""
+        if not self.showing_json_selection:
+            self.clear_frame()
+            self.main_frame = ttk.Frame(self.root, padding="20")
+            self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+            
+            self.main_frame.grid_rowconfigure(0, weight=1)
+            self.main_frame.grid_rowconfigure(1, weight=2)
+            self.main_frame.grid_rowconfigure(2, weight=1)
+            self.main_frame.grid_columnconfigure(0, weight=1)
+
+            # Botão "Voltar" no canto superior esquerdo
+            self.back_btn = ttk.Button(self.main_frame, text="⬅ Voltar", 
+                                     command=self.show_initial_screen, width=10)
+            self.back_btn.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+
+            self.title_label = ttk.Label(self.main_frame, text="Selecione o Arquivo de Quiz",
+                                       anchor='center')
+            self.title_label.grid(row=0, column=0, pady=20, sticky=(tk.W, tk.E))
+
+            json_frame = ttk.Frame(self.main_frame, padding="20")
+            json_frame.grid(row=1, column=0, sticky=(tk.N, tk.S))
+
+            if self.json_files:
+                for i, json_file in enumerate(self.json_files):
+                    ttk.Button(json_frame, text=json_file,
+                              command=lambda jf=json_file: self.load_and_show_difficulty_selection(jf),
+                              width=25).grid(row=i, column=0, pady=10)
+            else:
+                ttk.Label(json_frame, text="Nenhum arquivo de quiz encontrado!").grid(row=0, column=0, pady=10)
+
+            self.update_sizes()
+            self.showing_json_selection = True
+        else:
+            self.show_initial_screen()
+            self.showing_json_selection = False
+
+    def load_and_show_difficulty_selection(self, json_file):
+        """Carrega o arquivo JSON selecionado e exibe as opções de dificuldade."""
+        self.current_json_file = json_file
+        self.load_questions_from_json(json_file)
+        self.show_difficulty_selection()
 
     def show_difficulty_selection(self):
         """Exibe as opções de dificuldade na mesma janela."""
@@ -168,6 +224,11 @@ class QuizApp:
             self.main_frame.grid_rowconfigure(2, weight=1)
             self.main_frame.grid_columnconfigure(0, weight=1)
 
+            # Botão "Voltar" no canto superior esquerdo
+            self.back_btn = ttk.Button(self.main_frame, text="⬅ Voltar", 
+                                     command=self.show_json_selection, width=10)
+            self.back_btn.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+
             self.title_label = ttk.Label(self.main_frame, text="Selecione o Nível de Dificuldade",
                                        anchor='center')
             self.title_label.grid(row=0, column=0, pady=20, sticky=(tk.W, tk.E))
@@ -176,23 +237,19 @@ class QuizApp:
             difficulty_frame.grid(row=1, column=0, sticky=(tk.N, tk.S))
 
             ttk.Button(difficulty_frame, text="Iniciante",
-                      command=lambda: self.set_difficulty('Iniciante'),
+                      command=lambda: self.set_difficulty("Iniciante"),
                       width=25).grid(row=0, column=0, pady=10)
             ttk.Button(difficulty_frame, text="Estudado",
-                      command=lambda: self.set_difficulty('Estudado'),
+                      command=lambda: self.set_difficulty("Estudado"),
                       width=25).grid(row=1, column=0, pady=10)
             ttk.Button(difficulty_frame, text="Pronto para a Prova",
-                      command=lambda: self.set_difficulty('Pronto para a Prova'),
+                      command=lambda: self.set_difficulty("Pronto para a Prova"),
                       width=25).grid(row=2, column=0, pady=10)
-
-            self.back_btn = ttk.Button(self.main_frame, text="Voltar ao Menu", 
-                                     command=self.show_initial_screen, width=15)
-            self.back_btn.grid(row=2, column=0, pady=10)
 
             self.update_sizes()
             self.showing_difficulty = True
         else:
-            self.show_initial_screen()
+            self.show_json_selection()
             self.showing_difficulty = False
 
     def set_difficulty(self, difficulty):
@@ -212,6 +269,11 @@ class QuizApp:
             self.main_frame.grid_rowconfigure(2, weight=1)
             self.main_frame.grid_columnconfigure(0, weight=1)
 
+            # Botão "Voltar" no canto superior esquerdo
+            self.back_btn = ttk.Button(self.main_frame, text="⬅ Voltar", 
+                                     command=self.show_difficulty_selection, width=10)
+            self.back_btn.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+
             self.title_label = ttk.Label(self.main_frame, text="Selecione o Modo de Jogo",
                                        anchor='center')
             self.title_label.grid(row=0, column=0, pady=20, sticky=(tk.W, tk.E))
@@ -226,10 +288,6 @@ class QuizApp:
                       command=lambda: self.show_quiz_selection('multiple'),
                       width=25).grid(row=1, column=0, pady=10)
 
-            self.back_btn = ttk.Button(self.main_frame, text="Voltar", 
-                                     command=self.show_difficulty_selection, width=15)
-            self.back_btn.grid(row=2, column=0, pady=10)
-
             self.update_sizes()
             self.showing_mode = True
         else:
@@ -237,7 +295,7 @@ class QuizApp:
             self.showing_mode = False
 
     def show_quiz_selection(self, mode):
-        """Exibe as opções de tópicos na mesma janela."""
+        """Exibe os temas disponíveis no arquivo JSON selecionado na mesma janela."""
         self.current_mode = mode
         if not self.showing_quiz_selection:
             self.clear_frame()
@@ -249,26 +307,28 @@ class QuizApp:
             self.main_frame.grid_rowconfigure(2, weight=1)
             self.main_frame.grid_columnconfigure(0, weight=1)
 
-            self.title_label = ttk.Label(self.main_frame, text="Selecione o Tópico do Quiz",
+            # Botão "Voltar" no canto superior esquerdo
+            self.back_btn = ttk.Button(self.main_frame, text="⬅ Voltar", 
+                                     command=self.show_mode_selection, width=10)
+            self.back_btn.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+
+            self.title_label = ttk.Label(self.main_frame, text=f"Selecione um Tema ({self.current_json_file})",
                                        anchor='center')
             self.title_label.grid(row=0, column=0, pady=20, sticky=(tk.W, tk.E))
 
             quiz_frame = ttk.Frame(self.main_frame, padding="20")
             quiz_frame.grid(row=1, column=0, sticky=(tk.N, tk.S))
 
-            # Obtém os temas disponíveis para a dificuldade selecionada
+            # Filtra os temas disponíveis com base na dificuldade
             if self.current_difficulty in self.all_questions:
                 quizzes = self.all_questions[self.current_difficulty]
                 for i, quiz_name in enumerate(quizzes.keys()):
-                    ttk.Button(quiz_frame, text=quiz_name,
-                              command=lambda name=quiz_name: self.start_selected_quiz(name),
-                              width=25).grid(row=i, column=0, pady=10)
+                    btn = ttk.Button(quiz_frame, text=quiz_name,
+                                   command=lambda name=quiz_name: self.start_selected_quiz(name),
+                                   width=25)
+                    btn.grid(row=i, column=0, pady=10)
             else:
-                ttk.Label(quiz_frame, text="Nenhum tópico disponível para esta dificuldade!").grid(row=0, column=0, pady=10)
-
-            self.back_btn = ttk.Button(self.main_frame, text="Voltar", 
-                                     command=self.show_mode_selection, width=15)
-            self.back_btn.grid(row=2, column=0, pady=10)
+                ttk.Label(quiz_frame, text="Nenhum tema disponível para esta dificuldade!").grid(row=0, column=0, pady=10)
 
             self.update_sizes()
             self.showing_quiz_selection = True
@@ -281,14 +341,12 @@ class QuizApp:
         if (self.current_difficulty in self.all_questions and 
             quiz_name in self.all_questions[self.current_difficulty]):
             quizzes = self.all_questions[self.current_difficulty][quiz_name]
-            question_type = 'open' if self.current_mode == 'open' else 'multiple'
-            self.questions = quizzes[question_type].copy()  # Cria uma cópia para evitar modificar o original
+            self.questions = quizzes[self.current_mode].copy()  # Cria uma cópia para evitar modificar o original
             random.shuffle(self.questions)  # Embaralha as perguntas
             self.total_questions = len(self.questions)
             self.start_quiz()
         else:
-            messagebox.showerror("Erro", "Nenhum quiz disponível para esta dificuldade e modo!")
-            self.show_quiz_selection(self.current_mode)
+            messagebox.showerror("Erro", "Nenhuma pergunta disponível para este tema e dificuldade!")
 
     def create_quiz_frame(self):
         """Tela do quiz com perguntas e respostas."""
@@ -299,6 +357,11 @@ class QuizApp:
         for i in range(6):
             self.main_frame.grid_rowconfigure(i, weight=1)
         self.main_frame.grid_columnconfigure(0, weight=1)
+
+        # Botão "Voltar" no canto superior esquerdo
+        self.back_btn = ttk.Button(self.main_frame, text="⬅ Voltar", 
+                                 command=self.show_quiz_selection, width=10)
+        self.back_btn.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
 
         self.welcome_label = ttk.Label(self.main_frame, text="Vamos começar o Quiz!",
                                      anchor='center')
@@ -431,18 +494,33 @@ class QuizApp:
 
     def show_final_results(self):
         """Mostra os resultados finais com botão 'Voltar ao Menu'."""
+        self.clear_frame()
+        self.main_frame = ttk.Frame(self.root, padding="20")
+        self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        for i in range(5):
+            self.main_frame.grid_rowconfigure(i, weight=1)
+        self.main_frame.grid_columnconfigure(0, weight=1)
+
+        # Botão "Voltar" no canto superior esquerdo
+        self.back_btn = ttk.Button(self.main_frame, text="⬅ Voltar", 
+                                 command=self.show_initial_screen, width=10)
+        self.back_btn.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+
         percentage = (self.correct_answers / self.total_questions) * 100
         result_text = f"Quiz concluído!\nPontuação: {self.correct_answers}/{self.total_questions} ({percentage:.1f}%)"
-        self.question_label.config(text=result_text)
-        self.welcome_label.config(text="Obrigado por jogar!")
-        self.answer_frame.grid_remove()
-        self.btn_frame.grid_remove()
-        self.result_label.config(text="")
-        self.progress_label.config(text="")
 
-        self.back_btn = ttk.Button(self.main_frame, text="Voltar ao Menu", 
-                                 command=self.show_initial_screen, width=15)
-        self.back_btn.grid(row=5, column=0, pady=10)
+        self.welcome_label = ttk.Label(self.main_frame, text="Obrigado por jogar!",
+                                     anchor='center')
+        self.welcome_label.grid(row=0, column=0, pady=10, sticky=(tk.W, tk.E))
+
+        self.question_label = ttk.Label(self.main_frame, 
+                                      background=self.colors['light_purple'], 
+                                      foreground=self.colors['dark_purple'],
+                                      anchor='center', text=result_text)
+        self.question_label.grid(row=1, column=0, pady=20, sticky=(tk.W, tk.E))
+
+        self.update_sizes()
 
     # Estatísticas e Armazenamento
     def save_attempt(self):
@@ -487,6 +565,11 @@ class QuizApp:
         self.main_frame.grid_rowconfigure(2, weight=1)
         self.main_frame.grid_columnconfigure(0, weight=1)
 
+        # Botão "Voltar" no canto superior esquerdo
+        self.back_btn = ttk.Button(self.main_frame, text="⬅ Voltar", 
+                                 command=self.show_initial_screen, width=10)
+        self.back_btn.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+
         self.title_label = ttk.Label(self.main_frame, text="Suas Estatísticas 📊",
                                    anchor='center')
         self.title_label.grid(row=0, column=0, pady=20, sticky=(tk.W, tk.E))
@@ -523,62 +606,70 @@ class QuizApp:
         else:
             ttk.Label(frame, text="Nenhuma tentativa ainda!", justify="center").grid(row=1, column=0, pady=20)
 
-        self.back_btn = ttk.Button(self.main_frame, text="Voltar ao Menu", 
-                                 command=self.show_initial_screen, width=15)
-        self.back_btn.grid(row=2, column=0, pady=10)
-
         self.update_sizes()
         self.showing_stats = True
 
     # Leitura de PDFs
     def show_pdf_list(self):
-        """Lista PDFs disponíveis."""
-        # Sugere uma pasta padrão (ex.: onde o script está)
-        default_dir = os.path.dirname(os.path.abspath(__file__))
-        pdf_folder = filedialog.askdirectory(initialdir=default_dir, title="Escolha a pasta dos materiais")
-        if not pdf_folder:
-            return
+        """Lista PDFs com 'quiz' no nome na mesma janela."""
+        if not self.showing_pdf_list:
+            # Solicita a pasta onde os PDFs estão
+            default_dir = os.path.dirname(os.path.abspath(__file__))
+            pdf_folder = filedialog.askdirectory(initialdir=default_dir, title="Escolha a pasta dos materiais")
+            if not pdf_folder:
+                return
 
-        self.pdf_files = [f for f in os.listdir(pdf_folder) if f.endswith('.pdf')]
-        if not self.pdf_files:
-            messagebox.showinfo("Ops!", "Nenhum PDF encontrado! Certifique-se de que 'PSIGOLOGIA MEDICA.pdf' está na pasta.")
-            return
+            # Filtra PDFs com 'quiz' no nome
+            self.pdf_files = [f for f in os.listdir(pdf_folder) if f.endswith('.pdf') and 'quiz' in f.lower()]
+            if not self.pdf_files:
+                messagebox.showinfo("Ops!", "Nenhum PDF com 'quiz' no nome encontrado na pasta selecionada!")
+                return
 
-        pdf_window = tk.Toplevel(self.root, bg=self.colors['light_green'])
-        pdf_window.title("Materiais de Estudo")
-        pdf_window.geometry("400x400")
-        pdf_window.grid_rowconfigure(0, weight=1)
-        pdf_window.grid_columnconfigure(0, weight=1)
+            self.pdf_folder = pdf_folder  # Armazena o caminho da pasta para uso posterior
 
-        canvas = tk.Canvas(pdf_window, bg=self.colors['light_green'])
-        scrollbar = ttk.Scrollbar(pdf_window, orient="vertical", command=canvas.yview)
-        scrollable_frame = ttk.Frame(canvas)
+            self.clear_frame()
+            self.main_frame = ttk.Frame(self.root, padding="20")
+            self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+            
+            self.main_frame.grid_rowconfigure(0, weight=1)
+            self.main_frame.grid_rowconfigure(1, weight=2)
+            self.main_frame.grid_rowconfigure(2, weight=1)
+            self.main_frame.grid_columnconfigure(0, weight=1)
 
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
+            # Botão "Voltar" no canto superior esquerdo
+            self.back_btn = ttk.Button(self.main_frame, text="⬅ Voltar", 
+                                     command=self.show_initial_screen, width=10)
+            self.back_btn.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+            self.title_label = ttk.Label(self.main_frame, text="Selecione um Material de Estudo",
+                                       anchor='center')
+            self.title_label.grid(row=0, column=0, pady=20, sticky=(tk.W, tk.E))
 
-        for pdf in self.pdf_files:
-            pdf_path = os.path.join(pdf_folder, pdf)
-            btn = ttk.Button(scrollable_frame, text=f"📕 {pdf}", 
-                           command=lambda p=pdf_path: self.open_pdf(p), width=30)
-            btn.pack(pady=5)
+            pdf_frame = ttk.Frame(self.main_frame, padding="20")
+            pdf_frame.grid(row=1, column=0, sticky=(tk.N, tk.S))
 
-        canvas.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+            for i, pdf in enumerate(self.pdf_files):
+                pdf_path = os.path.join(pdf_folder, pdf)
+                ttk.Button(pdf_frame, text=f"📕 {pdf}",
+                          command=lambda p=pdf_path: self.open_pdf(p),
+                          width=25).grid(row=i, column=0, pady=10)
+
+            self.update_sizes()
+            self.showing_pdf_list = True
+        else:
+            self.show_initial_screen()
+            self.showing_pdf_list = False
 
     def open_pdf(self, pdf_path):
         """Abre um PDF no visualizador padrão."""
         try:
-            if os.name == 'nt':
+            if os.name == 'nt':  # Windows
                 os.startfile(pdf_path)
-            elif os.name == 'posix':
+            elif os.name == 'posix':  # macOS/Linux
                 opener = "open" if sys.platform == "darwin" else "xdg-open"
                 subprocess.call([opener, pdf_path])
+            else:
+                messagebox.showwarning("Aviso", "Plataforma não suportada para abertura de PDFs.")
         except Exception as e:
             messagebox.showerror("Erro!", f"Não consegui abrir o PDF: {e}. Verifique se o arquivo existe ou se está corrompido.")
 
